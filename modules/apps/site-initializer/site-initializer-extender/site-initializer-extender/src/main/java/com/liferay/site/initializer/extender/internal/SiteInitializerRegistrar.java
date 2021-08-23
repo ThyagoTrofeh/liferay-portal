@@ -22,6 +22,7 @@ import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyVocabularyResou
 import com.liferay.headless.delivery.resource.v1_0.DocumentResource;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectDefinitionResource;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.service.LayoutSetLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -46,6 +47,7 @@ public class SiteInitializerRegistrar {
 		DefaultDDMStructureHelper defaultDDMStructureHelper,
 		DocumentResource.Factory documentResourceFactory,
 		FragmentsImporter fragmentsImporter, JSONFactory jsonFactory,
+		LayoutSetLocalService layoutSetLocalService,
 		ObjectDefinitionResource.Factory objectDefinitionResourceFactory,
 		Portal portal, StyleBookEntryZipProcessor styleBookEntryZipProcessor,
 		TaxonomyVocabularyResource.Factory taxonomyVocabularyResourceFactory,
@@ -59,6 +61,7 @@ public class SiteInitializerRegistrar {
 		_documentResourceFactory = documentResourceFactory;
 		_fragmentsImporter = fragmentsImporter;
 		_jsonFactory = jsonFactory;
+		_layoutSetLocalService = layoutSetLocalService;
 		_objectDefinitionResourceFactory = objectDefinitionResourceFactory;
 		_portal = portal;
 		_styleBookEntryZipProcessor = styleBookEntryZipProcessor;
@@ -76,7 +79,7 @@ public class SiteInitializerRegistrar {
 			new BundleSiteInitializer(
 				_bundle, _ddmStructureLocalService, _ddmTemplateLocalService,
 				_defaultDDMStructureHelper, _documentResourceFactory,
-				_fragmentsImporter, _jsonFactory,
+				_fragmentsImporter, _jsonFactory, _layoutSetLocalService,
 				_objectDefinitionResourceFactory, _portal, _servletContext,
 				_styleBookEntryZipProcessor, _taxonomyVocabularyResourceFactory,
 				_userLocalService),
@@ -96,6 +99,7 @@ public class SiteInitializerRegistrar {
 	private final DocumentResource.Factory _documentResourceFactory;
 	private final FragmentsImporter _fragmentsImporter;
 	private final JSONFactory _jsonFactory;
+	private final LayoutSetLocalService _layoutSetLocalService;
 	private final ObjectDefinitionResource.Factory
 		_objectDefinitionResourceFactory;
 	private final Portal _portal;

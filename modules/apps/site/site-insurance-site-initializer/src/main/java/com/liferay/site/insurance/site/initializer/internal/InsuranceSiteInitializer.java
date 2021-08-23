@@ -911,7 +911,7 @@ public class InsuranceSiteInitializer implements SiteInitializer {
 		UnicodeProperties themeSettingsUnicodeProperties =
 			new UnicodeProperties(true);
 
-		themeSettingsUnicodeProperties.fastLoad(
+		themeSettingsUnicodeProperties.fastLoad( //////////importar
 			_read("/layout-set/" + type + "/theme.properties"));
 
 		settingsUnicodeProperties.putAll(themeSettingsUnicodeProperties);

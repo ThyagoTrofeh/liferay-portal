@@ -5,4 +5,6 @@ dependencies {
 	testIntegrationCompile project(":apps:site:site-api")
 	testIntegrationCompile project(":core:petra:petra-io")
 	testIntegrationCompile project(":test:arquillian-extension-junit-bridge")
+	testIntegrationCompile project(
+	/home/me/dev/projects/liferay-portal/portal-kernel/src/com/liferay/portal/kernel/service/LayoutSetLocalService.java
 }

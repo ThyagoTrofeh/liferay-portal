@@ -26,14 +26,17 @@ import com.liferay.headless.delivery.resource.v1_0.DocumentResource;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectDefinition;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectDefinitionResource;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.service.LayoutSetLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.template.TemplateConstants;
@@ -45,12 +48,14 @@ import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.vulcan.multipart.BinaryFile;
 import com.liferay.portal.vulcan.multipart.MultipartBody;
 import com.liferay.site.exception.InitializationException;
 import com.liferay.site.initializer.SiteInitializer;
 import com.liferay.style.book.zip.processor.StyleBookEntryZipProcessor;
 
+import java.io.File;
 import java.io.InputStream;
 
 import java.net.URL;
@@ -61,6 +66,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
@@ -79,6 +85,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 		DefaultDDMStructureHelper defaultDDMStructureHelper,
 		DocumentResource.Factory documentResourceFactory,
 		FragmentsImporter fragmentsImporter, JSONFactory jsonFactory,
+		LayoutSetLocalService layoutSetLocalService,
 		ObjectDefinitionResource.Factory objectDefinitionResourceFactory,
 		Portal portal, ServletContext servletContext,
 		StyleBookEntryZipProcessor styleBookEntryZipProcessor,
@@ -92,6 +99,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 		_documentResourceFactory = documentResourceFactory;
 		_fragmentsImporter = fragmentsImporter;
 		_jsonFactory = jsonFactory;
+		_layoutSetLocalService = layoutSetLocalService;
 		_objectDefinitionResourceFactory = objectDefinitionResourceFactory;
 		_portal = portal;
 		_servletContext = servletContext;
@@ -150,6 +158,9 @@ public class BundleSiteInitializer implements SiteInitializer {
 			_addObjectDefinitions(serviceContext);
 			_addStyleBookEntries(serviceContext);
 			_addTaxonomyVocabularies(serviceContext);
+
+			_updateLayoutSetLookAndFeel(serviceContext, "private");
+			_updateLayoutSetLookAndFeel(serviceContext, "public");
 		}
 		catch (Exception exception) {
 			throw new InitializationException(exception);
@@ -402,6 +413,52 @@ public class BundleSiteInitializer implements SiteInitializer {
 		return StringUtil.read(entryURL.openStream());
 	}
 
+	private void _updateLayoutSetLookAndFeel(
+			ServiceContext serviceContext, String type)
+		throws Exception {
+
+		boolean privateLayoutSet = false;
+
+		if (Objects.equals(type, "private")) {
+			privateLayoutSet = true;
+		}
+
+		LayoutSet layoutSet = _layoutSetLocalService.fetchLayoutSet(
+			serviceContext.getScopeGroupId(), privateLayoutSet);
+
+		UnicodeProperties settingsUnicodeProperties =
+			layoutSet.getSettingsProperties();
+
+		UnicodeProperties themeSettingsUnicodeProperties =
+			new UnicodeProperties(true);
+
+		themeSettingsUnicodeProperties.fastLoad(
+			_read(
+				"/site-initializer/layout-set/" + type + "/theme.properties"));
+
+		settingsUnicodeProperties.putAll(themeSettingsUnicodeProperties);
+
+		_layoutSetLocalService.updateSettings(
+			serviceContext.getScopeGroupId(), privateLayoutSet,
+			settingsUnicodeProperties.toString());
+
+		_layoutSetLocalService.updateLookAndFeel(
+			serviceContext.getScopeGroupId(), privateLayoutSet,
+			layoutSet.getThemeId(), layoutSet.getColorSchemeId(),
+			_read("/site-initializer/layout-set/" + type + "/css.css"));
+
+		URL logoURL = _bundle.getEntry(
+			StringBundler.concat(
+				"/site-initializer/layout-set/", type, "/logo.png"));
+
+		if (logoURL != null) {
+			File file = FileUtil.createTempFile(logoURL.openStream());
+
+			_layoutSetLocalService.updateLogo(
+				serviceContext.getScopeGroupId(), privateLayoutSet, true, file);
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		BundleSiteInitializer.class);
 
@@ -413,6 +470,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 	private final DocumentResource.Factory _documentResourceFactory;
 	private final FragmentsImporter _fragmentsImporter;
 	private final JSONFactory _jsonFactory;
+	private final LayoutSetLocalService _layoutSetLocalService;
 	private final ObjectDefinitionResource.Factory
 		_objectDefinitionResourceFactory;
 	private final Portal _portal;
