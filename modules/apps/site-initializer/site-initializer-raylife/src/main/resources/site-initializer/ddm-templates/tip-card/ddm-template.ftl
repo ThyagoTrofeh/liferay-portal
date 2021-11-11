@@ -96,6 +96,16 @@
 		padding: 10px;
 		text-transform: uppercase;
 	}
+
+	.fixed-menu' {
+        width: 100%;
+    	z-index: 9999;
+    	top: 80px;
+    	left: 0;
+    	position: fixed;
+    	background-color: white;
+	}
+
 </style>
 
 <#assign applicationNameSpace = randomNamespace />
@@ -114,7 +124,38 @@
 
 		window.location.href = siteName + '/get-a-quote';
 		localStorage.setItem('raylife-back-to-edit', true);
+		
 	}
+
+	function scrollTest() {
+		const tip = document.getElementById('tip');
+		let lastKnownScrollPosition = 0;
+		let ticking = false;
+
+		function doSomething(scrollPos) {
+			if (scrollPos > 223) {
+				tip.classList.add('fixed-menu');
+			} else {
+				tip.classList.remove('fixed-menu');
+			}
+		}
+
+		document.addEventListener('scroll', () => {
+			lastKnownScrollPosition = window.scrollY;
+
+			if (!ticking) {
+				window.requestAnimationFrame(() => {
+					doSomething(lastKnownScrollPosition);
+					ticking = false;
+				});
+
+				ticking = true;
+			}
+		});
+	}
+
+	scrollTest();
+
 </script>
 
 <div id="tip">

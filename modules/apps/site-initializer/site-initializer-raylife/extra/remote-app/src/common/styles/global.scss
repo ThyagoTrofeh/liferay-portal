@@ -39,3 +39,12 @@ svg {
 	height: 0.8rem !important;
 	width: 0.8rem !important;
 }
+
+.tip-fixed-menu {
+	width: 100%;
+	z-index: 9999;
+	top: 80px;
+	left: 0;
+	position: fixed;
+	background-color: white;
+}
